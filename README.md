@@ -10,11 +10,13 @@ This is a first implementation of an LLM application built with Java 17, Spring 
 
 - 🏗️ **Clean Architecture** - Properly separated layers (Domain, Application, Infrastructure)
 - 🔌 **Multiple LLM Providers** - Mock provider for development, OpenAI adapter for production
-- 📊 **Health Monitoring** - Health check endpoints with Actuator
+- � **Secure Configuration** - Environment variables with .env file support for API keys
+- �📊 **Health Monitoring** - Health check endpoints with Actuator
 - 📚 **API Documentation** - Swagger/OpenAPI 3.0 documentation
 - ✅ **Input Validation** - Request validation with proper error handling
 - 🔄 **Reactive HTTP Client** - WebFlux WebClient for external API calls
 - 🎯 **Comprehensive Logging** - Structured logging with SLF4J
+- 🔄 **Conditional Bean Loading** - Seamlessly switch between mock and real API modes
 
 ## Tech Stack
 
@@ -25,6 +27,7 @@ This is a first implementation of an LLM application built with Java 17, Spring 
   - Spring Actuator
   - Spring Validation
 - **OpenAPI 3.0** (SpringDoc)
+- **Environment Variables** (dotenv-java for .env file support)
 - **Lombok** (for reducing boilerplate)
 - **Maven** (build tool)
 
@@ -65,13 +68,27 @@ git clone https://github.com/AnderssonProgramming/llm-application.git
 cd llm-application
 ```
 
-2. Build the project:
+2. Set up environment variables:
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env file with your actual values (especially OPENAI_API_KEY)
+# Use any text editor like nano, vim, or VS Code
+code .env
+```
+
+3. Build the project:
 ```bash
 ./mvnw clean compile
 ```
 
-3. Run the application:
+4. Run the application:
 ```bash
+# Option 1: Using PowerShell script (loads .env automatically)
+./run-with-env.ps1
+
+# Option 2: Using Maven directly (requires manual env variable setup)
 ./mvnw spring-boot:run
 ```
 
@@ -79,20 +96,57 @@ The application will start on port 8081.
 
 ### Configuration
 
-The application can be configured via `application.properties`:
+The application uses environment variables for configuration. Create a `.env` file in the root directory (copy from `.env.example`):
 
-```properties
-# Server Configuration
-server.port=8081
+```bash
+# Environment variables for local development
+# Copy this file to .env and fill in your actual values
+# DO NOT COMMIT THE .env FILE TO VERSION CONTROL
 
-# LLM Provider Configuration
-openai.mock.enabled=true           # Set to false to use real OpenAI
-openai.api.key=your-openai-api-key-here
-openai.api.url=https://api.openai.com/v1
-openai.timeout.seconds=30
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_MOCK_ENABLED=false
+OPENAI_API_URL=https://api.openai.com/v1
+OPENAI_TIMEOUT_SECONDS=30
 
-# Documentation
-springdoc.swagger-ui.path=/swagger-ui.html
+# Example for mock mode (development/testing)
+# OPENAI_MOCK_ENABLED=true
+```
+
+#### Security Note 🔒
+- **Never commit your `.env` file to version control**
+- The `.env` file is already included in `.gitignore`
+- Use `.env.example` as a template for required variables
+- Store production secrets in your deployment platform's secret management
+
+#### Configuration Options
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_MOCK_ENABLED` | `true` | Set to `false` to use real OpenAI API |
+| `OPENAI_API_KEY` | `your-openai-api-key-here` | Your OpenAI API key (required for real API) |
+| `OPENAI_API_URL` | `https://api.openai.com/v1` | OpenAI API base URL |
+| `OPENAI_TIMEOUT_SECONDS` | `30` | Request timeout in seconds |
+
+#### Running the Application
+
+**Option 1: Using PowerShell script (Recommended)**
+```bash
+# Automatically loads .env file and starts the application
+./run-with-env.ps1
+```
+
+**Option 2: Manual environment setup**
+```bash
+# Set environment variables manually (Windows PowerShell)
+$env:OPENAI_MOCK_ENABLED="false"
+$env:OPENAI_API_KEY="your-actual-api-key"
+./mvnw spring-boot:run
+
+# Set environment variables manually (Linux/Mac)
+export OPENAI_MOCK_ENABLED=false
+export OPENAI_API_KEY="your-actual-api-key"
+./mvnw spring-boot:run
 ```
 
 ## API Endpoints
@@ -136,11 +190,35 @@ GET /api/v1/llm/health
 
 The application comes with a mock LLM provider that simulates responses without making external API calls. This is perfect for development and testing.
 
+```bash
+# Set mock mode in .env file
+OPENAI_MOCK_ENABLED=true
+```
+
 ### Using Real OpenAI Provider
 
-1. Set `openai.mock.enabled=false` in `application.properties`
-2. Add your OpenAI API key: `openai.api.key=sk-your-actual-key`
-3. Restart the application
+1. Get your OpenAI API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Set up your `.env` file:
+```bash
+OPENAI_MOCK_ENABLED=false
+OPENAI_API_KEY=sk-your-actual-api-key-here
+```
+3. Restart the application using `./run-with-env.ps1`
+
+**Note:** Real OpenAI API usage requires billing setup in your OpenAI account.
+
+### Environment Switching
+
+Switch between modes easily by updating your `.env` file:
+
+```bash
+# For development/testing (free)
+OPENAI_MOCK_ENABLED=true
+
+# For production/real API testing (requires billing)
+OPENAI_MOCK_ENABLED=false
+OPENAI_API_KEY=your-real-api-key
+```
 
 ### Adding New LLM Providers
 
@@ -149,6 +227,15 @@ To add a new LLM provider:
 1. Implement the `LlmProviderPort` interface
 2. Add the implementation in `infrastructure/adapters/llm/`
 3. Configure it with `@ConditionalOnProperty` or similar
+
+### Configuration Files
+
+The application uses the following configuration files:
+
+- **`.env`** - Environment variables (not committed to git)
+- **`.env.example`** - Template for environment variables (committed to git)
+- **`application.properties`** - Spring Boot configuration with environment variable references
+- **`run-with-env.ps1`** - PowerShell script to load .env and start the application
 
 ## Testing
 
