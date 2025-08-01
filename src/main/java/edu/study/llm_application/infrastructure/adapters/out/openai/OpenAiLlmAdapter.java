@@ -6,6 +6,8 @@ import edu.study.llm_application.domain.ports.out.LlmProviderPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,8 @@ import java.util.List;
  */
 @Slf4j
 @Component
+@Primary
+@ConditionalOnProperty(name = "openai.mock.enabled", havingValue = "false")
 @RequiredArgsConstructor
 public class OpenAiLlmAdapter implements LlmProviderPort {
     

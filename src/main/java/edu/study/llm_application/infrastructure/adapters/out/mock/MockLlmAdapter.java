@@ -5,7 +5,6 @@ import edu.study.llm_application.domain.entities.LlmResponse;
 import edu.study.llm_application.domain.ports.out.LlmProviderPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
@@ -16,7 +15,6 @@ import java.util.Random;
  */
 @Slf4j
 @Component
-@Primary
 @ConditionalOnProperty(name = "openai.mock.enabled", havingValue = "true", matchIfMissing = true)
 public class MockLlmAdapter implements LlmProviderPort {
     
