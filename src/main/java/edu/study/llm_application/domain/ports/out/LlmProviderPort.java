@@ -32,6 +32,13 @@ public interface LlmProviderPort {
     String[] getSupportedModels();
     
     /**
+     * Gets the provider name
+     * 
+     * @return the name of the LLM provider
+     */
+    String getProviderName();
+    
+    /**
      * Exception thrown when there's an error with the LLM provider
      */
     class LlmProviderException extends Exception {
